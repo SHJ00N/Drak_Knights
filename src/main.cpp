@@ -10,6 +10,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mode);
 
 // settings
 const unsigned int SCR_WIDTH = 1440;
@@ -54,6 +55,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     // tell GLFW to capture our mouse
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -167,4 +169,29 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     const auto& scene = game.GetCurrentScene();
     if(scene != nullptr && scene->GetCamera() != nullptr)
         scene->GetCamera()->ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+// glfw: whenever a mouse button is pressed, this callback is called
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mode)
+{
+    const auto& scene = game.GetCurrentScene();
+    if(scene != nullptr)
+    {
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        {
+            scene->MouseButtonLeft = true;
+        }
+        else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+        {
+            scene->MouseButtonRight = true;
+        }
+        else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+        {
+            scene->MouseButtonLeft = false;
+        }
+        else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+        {
+            scene->MouseButtonRight = false;
+        }
+    }
 }

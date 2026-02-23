@@ -1,7 +1,8 @@
 #include "animation/animation.h"
 #include "model/model.h"
 
-Animation::Animation(const std::string &animationPath, Model &model){
+Animation::Animation(const std::string &animationPath, Model &model, bool isLooping) : m_isLooping(isLooping)
+{
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
     assert(scene && scene->mRootNode);
@@ -37,6 +38,12 @@ void Animation::ReadMissingBones(const aiAnimation *animation, Model &model){
         }
         m_Bones.push_back(Bone(channel->mNodeName.data, boneInfoMap[channel->mNodeName.data].id, channel));
     }
+
+    // for(const auto& pair : boneInfoMap)
+    // {
+    //     std::string boneName = pair.first;
+    //     std::cout << "boneName: " << boneName <<", id: " << pair.second.id << std::endl;
+    // }
 
     m_BoneInfoMap = boneInfoMap;
 }

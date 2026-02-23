@@ -50,10 +50,10 @@ Model& ResourceManager::GetModel(std::string name)
     return Models[name];
 }
 
-Animation ResourceManager::LoadAnimation(const char *file, Model &model, std::string name)
+Animation ResourceManager::LoadAnimation(const char *file, Model &model, std::string name, bool isLooping)
 {
     if(Animations.find(name) == Animations.end())
-        Animations[name] = loadAnimationFromFile(file, model);
+        Animations[name] = loadAnimationFromFile(file, model, isLooping);
     return Animations[name];
 }
 
@@ -191,10 +191,10 @@ Model ResourceManager::loadModelFromFile(const char *file, bool gamma)
     return model;
 }
 
-Animation ResourceManager::loadAnimationFromFile(const char *file, Model &model)
+Animation ResourceManager::loadAnimationFromFile(const char *file, Model &model, bool isLooping)
 {
     // create animation object
-    Animation animation(file, model);
+    Animation animation(file, model, isLooping);
     return animation;
 }
 

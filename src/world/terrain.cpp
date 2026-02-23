@@ -19,20 +19,28 @@ glm::vec3 Terrain::SampleNormal(float worldX, float worldZ) const
     float localX = localCoord.x;
     float localZ = localCoord.y;
 
-    float dx = 1.0f;
-    float heightScale = m_worldScaleInfo.heightScale;
+    float step = 0.5f; // texel step
+    float ws = m_worldScaleInfo.worldScale;
+    float hs = m_worldScaleInfo.heightScale;
 
-    float hL = bilinearInterpolate(localX - 1.0f, localZ) * heightScale;
-    float hR = bilinearInterpolate(localX + 1.0f, localZ) * heightScale;
-    float hD = bilinearInterpolate(localX, localZ - 1.0f) * heightScale;
-    float hU = bilinearInterpolate(localX, localZ + 1.0f) * heightScale;
+    float hC = bilinearInterpolate(localX, localZ) * hs;
+    float hL = bilinearInterpolate(localX - step, localZ) * hs;
+    float hR = bilinearInterpolate(localX + step, localZ) * hs;
+    float hD = bilinearInterpolate(localX, localZ - step) * hs;
+    float hU = bilinearInterpolate(localX, localZ + step) * hs;
 
-    glm::vec3 normal;
-    normal.x = hL - hR;
-    normal.y = 2.0f * dx;
-    normal.z = hD - hU;
+    glm::vec3 center(worldX,           hC, worldZ);
+    glm::vec3 left  (worldX - ws,      hL, worldZ);
+    glm::vec3 right (worldX + ws,      hR, worldZ);
+    glm::vec3 down  (worldX,           hD, worldZ - ws);
+    glm::vec3 up    (worldX,           hU, worldZ + ws);
 
-    return glm::normalize(normal);
+    glm::vec3 tangentX = right - left;
+    glm::vec3 tangentZ = up - down;
+
+    glm::vec3 normal = glm::normalize(glm::cross(tangentZ, tangentX));
+
+    return normal;
 }
 
 float Terrain::bilinearInterpolate(float localX, float localZ) const
@@ -72,6 +80,10 @@ glm::vec2 Terrain::worldToLocal(float worldX, float worldZ) const
     // height map 좌표계로 변환
     float tx = worldX / m_worldScaleInfo.worldScale;
     float tz = worldZ / m_worldScaleInfo.worldScale;
+
+    // 텍셀 중심이 되도록 보정
+    tx -= 0.5f;
+    tz -= 0.5f;
 
     return {tx, tz};
 }

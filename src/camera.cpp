@@ -31,7 +31,7 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
 }
 
 void Camera::Update(const glm::vec3 &targetPos, float dt){
-    glm::vec3 pivot = targetPos + glm::vec3(0.0f, 1.5f, 0.0f);
+    glm::vec3 pivot = targetPos + glm::vec3(0.0f, 0.5f, 0.0f);
 
     float finalYaw = yaw + followYawOffset;
 
@@ -58,7 +58,6 @@ void Camera::Update(const glm::vec3 &targetPos, float dt){
     // {
     //     fov = glm::mix(fov, targetFov, dt * 6.0f);
     // }
-    fov = glm::mix(fov, targetFov, dt * 6.0f);
 }
 
 glm::mat4 Camera::GetViewMatrix(){

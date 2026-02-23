@@ -18,7 +18,7 @@ public:
     BoneDemoObj(Model &model, Shader &shader, glm::vec3 position, glm::vec3 size, glm::vec3 rotation = glm::vec3(0.0f), glm::vec2 velocity = glm::vec2(0.0f));
 
     // override functions
-    void Update(float dt) override;
+    void Update(const ObjectUpdateContext &context) override;
     // renderable override
     void Render(const struct Frustum &frustum) override;
     void RenderShadow(const struct Frustum& frustum) override;

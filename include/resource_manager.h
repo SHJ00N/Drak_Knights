@@ -34,7 +34,7 @@ public:
     // retrieves a stored model
     static Model& GetModel(std::string name);
     // loads (and generates) an animation from file
-    static Animation LoadAnimation(const char *file, Model &model, std::string name);
+    static Animation LoadAnimation(const char *file, Model &model, std::string name, bool isLooping = true);
     // retrieves a stored animation
     static Animation& GetAnimation(std::string name);
     // loads (and generates) a terrain texture form file
@@ -53,7 +53,7 @@ private:
     // loads a single model from file
     static Model loadModelFromFile(const char *file, bool gamma);
     // loads a single animation from file
-    static Animation loadAnimationFromFile(const char *file, Model &model);
+    static Animation loadAnimationFromFile(const char *file, Model &model, bool isLooping);
     // loads a single terrain texture from file
     static TerrainTexture loadTerrainTextureFromFile(const char *diffuseFile, const char *normalFile, const char *roughFile, bool gamma);
 };

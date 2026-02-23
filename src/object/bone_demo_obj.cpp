@@ -10,8 +10,10 @@ BoneDemoObj::BoneDemoObj(Model &model, Shader &shader, glm::vec3 position, glm::
     m_collider = std::make_unique<AABB>(m_model);
 }
 
-void BoneDemoObj::Update(float dt)
+void BoneDemoObj::Update(const ObjectUpdateContext &context)
 {
+    float dt = context.deltaTime;
+    
     updateHeight(dt);
 
     if (transform.IsDirty()) transform.ComputeModelMatrix();

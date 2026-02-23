@@ -29,12 +29,14 @@ public:
     // key processing members
     bool Keys[1024];
     bool KeysProcessed[1024];
-
+    // mouse button processing members
+    bool MouseButtonLeft;
+    bool MouseButtonRight;
     
 
     // constructor(s)
     Scene(){ };
-    Scene(unsigned int width, unsigned int height) : Width(width), Height(height), Keys{0}, KeysProcessed{0} { };
+    Scene(unsigned int width, unsigned int height) : Width(width), Height(height), Keys{0}, KeysProcessed{0}, MouseButtonLeft(false), MouseButtonRight(false) { };
     virtual ~Scene() = default;
 
     // init scene

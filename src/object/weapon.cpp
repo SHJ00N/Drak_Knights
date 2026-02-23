@@ -1,4 +1,5 @@
 #include "object/weapon.h"
+#include "object/player.h"
 
 Weapon::Weapon(Model &model, Shader &shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 : m_shader(shader), m_model(model)
@@ -16,6 +17,7 @@ void Weapon::Render(const Frustum &frustum)
     // inside frsutum
     if (m_collider->isOnFrustum(frustum, transform))
     {
+        if(!m_owner || m_owner->GetActionState() == ActionState::Roll) return; // if weapon has owner and owner is rolling, don't render weapon
         m_renderer.Draw(m_shader, transform, m_model);
     }
 
@@ -32,6 +34,7 @@ void Weapon::RenderShadow(const struct Frustum& frustum)
     // inside frsutum
     if (m_collider->isOnFrustum(frustum, transform))
     {
+        if(!m_owner || m_owner->GetActionState() == ActionState::Roll) return; // if weapon has owner and owner is rolling, don't render weapon
         m_renderer.DrawShadow(transform, m_model);
     }
 
@@ -41,4 +44,9 @@ void Weapon::RenderShadow(const struct Frustum& frustum)
         if (auto* renderable = dynamic_cast<Renderable*>(child.get()))
             renderable->RenderShadow(frustum);
     }
+}
+
+void Weapon::SetOwner(Player *owner)
+{
+    m_owner = owner;
 }

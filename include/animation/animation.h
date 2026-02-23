@@ -21,7 +21,7 @@ struct AssimpNodeData{
 class Animation{
 public:
     Animation() = default;
-    Animation(const std::string &animationPath, Model &model);
+    Animation(const std::string &animationPath, Model &model, bool isLooping = true);
     ~Animation(){ };
     Bone *FindBone(const std::string &name);
 
@@ -30,11 +30,13 @@ public:
     inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
     inline const std::map<std::string, BoneInfo>& GetBoneIDMap() {
         return m_BoneInfoMap;
-    } 
+    }
+    inline bool IsLooping() { return m_isLooping; }
 
 private:
     float m_Duration;
     int m_TicksPerSecond;
+    bool m_isLooping;
     std::vector<Bone> m_Bones;
     AssimpNodeData m_RootNode;
     std::map<std::string, BoneInfo> m_BoneInfoMap;

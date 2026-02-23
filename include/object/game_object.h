@@ -3,6 +3,13 @@
 #include <glm/glm.hpp>
 #include "object/entity.h"
 
+struct ObjectUpdateContext
+{
+    float deltaTime;
+    class World *world;
+    class Camera *camera;
+};
+
 class GameObject : public Entity
 {
 public:
@@ -10,6 +17,6 @@ public:
     glm::vec2 Velocity;
     bool Destroyed;
     
-    virtual void Update(float dt) = 0;
+    virtual void Update(const ObjectUpdateContext &context) = 0;
     virtual ~GameObject() = default;
 };

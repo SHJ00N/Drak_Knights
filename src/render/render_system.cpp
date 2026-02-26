@@ -7,6 +7,9 @@
 #include "light/direction_light.h"
 #include "resource_manager.h"
 #include "scene/scene.h"
+#include "particle/particle.h"
+#include "render/pass/sky_box_pass.h"
+#include "render/pass/particle_pass.h"
 
 #include <iostream>
 
@@ -15,20 +18,18 @@ RenderSystem::RenderSystem(unsigned int width, unsigned int height) : m_width(wi
 {
     m_cameraUBO = 0;
     m_dirLightUBO = 0;
-    m_cubeVAO = 0;
-    m_cubeVBO = 0;
 }
 
 RenderSystem::~RenderSystem()
 {
     if(m_cameraUBO) glDeleteBuffers(1, &m_cameraUBO);
     if(m_dirLightUBO) glDeleteBuffers(1, &m_dirLightUBO);
-    if(m_cubeVBO) glDeleteBuffers(1, &m_cubeVBO);
-    if(m_cubeVAO) glDeleteVertexArrays(1, &m_cubeVAO);
     delete m_geometryPass;
     delete m_pbrPass;
     delete m_cascadedShadowPass;
     delete m_ssaoPass;
+    delete m_skyBoxPass;
+    delete m_particlePass;
 }
 
 #pragma endregion
@@ -42,6 +43,8 @@ void RenderSystem::Init()
     m_pbrPass = new PBRPass();
     m_cascadedShadowPass = new CascadedShadowPass(m_width, m_height);
     m_ssaoPass = new SSAOPass(m_width, m_height);
+    m_skyBoxPass = new SkyBoxPass();
+    m_particlePass = new ParticlePass();
 }
 
 void RenderSystem::BeginFrame(Scene *scene)
@@ -56,6 +59,7 @@ void RenderSystem::Render(Scene *scene, float dt)
 {
     if(scene->GetRenderType() == RenderType::Deferred)
     {
+        // deffered rendering
         // geometry pass
         m_geometryPass->Render(scene);
         // cascaded shadow pass
@@ -65,8 +69,11 @@ void RenderSystem::Render(Scene *scene, float dt)
         // pbr lighting pass
         m_pbrPass->Render(m_geometryPass->GetTextures(), m_cascadedShadowPass->GetShadowMapTexture(), m_ssaoPass->GetSSAOTexture(), scene->GetIBLData());
         
+        // forward rendering
         // render skybox with forward rendering
-        renderSkyBox(scene->GetIBLData().envCubeMap, m_geometryPass->GetGBuffer());
+        m_skyBoxPass->Render(scene->GetIBLData().envCubeMap);
+        // particle render
+        m_particlePass->Render(scene, m_geometryPass->GetTextures().depth, m_width, m_height);
     }
 }
 
@@ -140,102 +147,6 @@ void RenderSystem::updateUBO(Scene* scene)
             glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(DirLightBlockUBO), &data);
         }
     }
-}
-
-#pragma endregion
-
-#pragma region skybox
-
-void RenderSystem::renderSkyBox(unsigned int envCubeMap, unsigned int gBuffer)
-{
-    glDepthFunc(GL_LEQUAL);
-    glDepthMask(GL_FALSE);
-
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    ResourceManager::GetShader("background").Use();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubeMap);
-    renderCube();
-
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
-}
-
-void RenderSystem::renderCube()
-{
-    // initialize (if necessary)
-    if (m_cubeVAO == 0)
-    {
-        float vertices[] = {
-            // back face
-            -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-             1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-             1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-             1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-            -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-            -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
-            // front face
-            -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-             1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-             1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-             1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-            -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
-            -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-            // left face
-            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-            -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
-            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-            -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-            // right face
-             1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-             1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-             1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
-             1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-             1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-             1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
-            // bottom face
-            -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-             1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-             1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-             1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-            -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-            -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-            // top face
-            -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-             1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-             1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
-             1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-            -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-            -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
-        };
-        glGenVertexArrays(1, &m_cubeVAO);
-        glGenBuffers(1, &m_cubeVBO);
-        // fill buffer
-        glBindBuffer(GL_ARRAY_BUFFER, m_cubeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        // link vertex attributes
-        glBindVertexArray(m_cubeVAO);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-    // render Cube
-    glDisable(GL_CULL_FACE);
-    glBindVertexArray(m_cubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-    glEnable(GL_CULL_FACE);
 }
 
 #pragma endregion

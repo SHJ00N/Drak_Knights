@@ -11,6 +11,7 @@
 #include "model/model.h"
 #include "animation/animation.h"
 #include "render/terrain_texture.h"
+#include "compute_shader.h"
 
 class ResourceManager
 {
@@ -21,12 +22,17 @@ public:
     static std::map<std::string, Model>     Models;
     static std::map<std::string, Animation> Animations;
     static std::map<std::string, TerrainTexture> TerrainTextures;
+    static std::map<std::string, ComputeShader> ComputeShaders;
     // loads (and generates) a shader program from file loading vertex, fragment (and geometry) shader's source code. If gShaderFile is not nullptr, it also loads a geometry shader
     static Shader    LoadShader(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile, const char *tcShaderFile, const char *teShaderFile, std::string name);
     // retrieves a stored sader
     static Shader&    GetShader(std::string name);
+    // loads (and generates) a compute shader from file
+    static ComputeShader LoadComputeShader(const char *computeShaderFile, std::string name);
+    // retrieves a stored compute shader
+    static ComputeShader& GetComputeShader(std::string name);
     // loads (and generates) a texture from file
-    static Texture2D LoadTexture(const char *file, bool alpha, std::string name);
+    static Texture2D LoadTexture(const char *file, bool alpha, std::string name, unsigned int wrap_s, unsigned int wrap_t, unsigned int filter_min, unsigned int filter_max);
     // retrieves a stored texture
     static Texture2D& GetTexture(std::string name);
     // loads (and generates) a model from file
@@ -48,8 +54,10 @@ private:
     ResourceManager() { }
     // loads and generates a shader from file
     static Shader    loadShaderFromFile(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile = nullptr, const char *tcShaderFile = nullptr, const char *teShaderFile = nullptr);
+    // loads and generates a compute shader from file
+    static ComputeShader loadComputeShaderFromFile(const char *computeShaderFile);
     // loads a single texture from file
-    static Texture2D loadTextureFromFile(const char *file, bool alpha);
+    static Texture2D loadTextureFromFile(const char *file, bool alpha, unsigned int wrap_s, unsigned int wrap_t, unsigned int filter_min, unsigned int filter_max);
     // loads a single model from file
     static Model loadModelFromFile(const char *file, bool gamma);
     // loads a single animation from file

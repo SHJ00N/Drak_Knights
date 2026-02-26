@@ -8,11 +8,6 @@ Texture2D::Texture2D()
     glGenTextures(1, &this->ID);
 }
 
-Texture2D::~Texture2D()
-{
-    glDeleteTextures(1, &this->ID);
-}
-
 void Texture2D::Generate(unsigned int width, unsigned int height, unsigned char* data)
 {
     this->Width = width;
@@ -25,11 +20,19 @@ void Texture2D::Generate(unsigned int width, unsigned int height, unsigned char*
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, this->Wrap_T);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, this->Filter_Min);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, this->Filter_Max);
+    if (this->Filter_Min == GL_LINEAR_MIPMAP_LINEAR ||
+        this->Filter_Min == GL_LINEAR_MIPMAP_NEAREST ||
+        this->Filter_Min == GL_NEAREST_MIPMAP_LINEAR ||
+        this->Filter_Min == GL_NEAREST_MIPMAP_NEAREST)
+    {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
     // unbind texture
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture2D::Bind() const
+void Texture2D::Bind(unsigned int unit) const
 {
+    glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, this->ID);
 }

@@ -13,7 +13,7 @@ Player::Player(Model &model, Shader &shader, glm::vec3 position, glm::vec3 size,
     transform.SetLocalPosition(position);
     transform.SetLocalScale(size);
     transform.SetLocalRotation(rotation);
-    transform.ComputeModelMatrix();
+    updateSelfAndChild();
     // create collider
     m_collider = std::make_unique<AABB>(m_model);
     // configure soket data
@@ -24,16 +24,27 @@ Player::Player(Model &model, Shader &shader, glm::vec3 position, glm::vec3 size,
 void Player::soketConfig()
 {
     m_sokets["RightHand"] = 88;
-    m_sokets["center"] = 27;
+    m_sokets["Center"] = 27;
 }
 
-glm::vec3 Player::GetCenterSoketPosition()
+glm::vec3 Player::GetSoketLocalPosition(const std::string &name)
 {
-    const int soket = m_sokets["center"];
+    if(m_sokets.find(name) == m_sokets.end()) return glm::vec3(0.0f);
+    return glm::vec3(getSoketMat(name)[3]);
+}
+
+glm::vec3 Player::GetSoketGlobalPosition(const std::string &name)
+{
+    if(m_sokets.find(name) == m_sokets.end()) return glm::vec3(0.0f);
+    glm::mat4 boneGlobalModel = transform.GetModelMatrix() * getSoketMat("center");
+    return glm::vec3(boneGlobalModel[3]);
+}
+
+const glm::mat4& Player::getSoketMat(const std::string &name)
+{
+    const int soket = m_sokets[name];
     const auto& bones = m_animator3D.GetGlobalBoneMatrices();
-    // bone world matrix
-    glm::mat4 boneModel = transform.GetModelMatrix() * bones[soket];
-    return glm::vec3(boneModel[3]);
+    return bones[soket];
 }
 #pragma endregion
 
@@ -53,9 +64,8 @@ void Player::Update(const ObjectUpdateContext &context)
     
     updateWorldHeight(*context.world);  // update height based on world height
 
-    if(transform.IsDirty()) transform.ComputeModelMatrix();
+    updateSelfAndChild();
     updateWeaponTransform();
-    
 }
 
 void Player::UpdateAnimation(float dt)

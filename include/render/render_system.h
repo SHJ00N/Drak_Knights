@@ -10,6 +10,8 @@ class GeometryPass;
 class CascadedShadowPass;
 class PBRPass;
 class SSAOPass;
+class SkyBoxPass;
+class ParticlePass;
 
 // ubo state : 1 : camera, 2 : dirlight, 3 : cascaded shadow matrices, 4 : csm data
 class RenderSystem
@@ -28,18 +30,15 @@ public:
 private:
     unsigned int m_cameraUBO, m_dirLightUBO;
     unsigned int m_width, m_height;
-    // skybox VAO, VBO
-    unsigned int m_cubeVAO, m_cubeVBO;
     // render pass objects
     GeometryPass *m_geometryPass = nullptr;
     PBRPass *m_pbrPass = nullptr;
     CascadedShadowPass *m_cascadedShadowPass = nullptr;
     SSAOPass *m_ssaoPass = nullptr;
+    SkyBoxPass *m_skyBoxPass = nullptr;
+    ParticlePass *m_particlePass = nullptr;
 
     // ubo
     void configureUBO();
     void updateUBO(Scene *scene);
-    // skybox functions
-    void renderSkyBox(unsigned int envCubeMap, unsigned int gBuffer);
-    void renderCube();
 };

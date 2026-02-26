@@ -17,10 +17,17 @@ public:
 	//Space information
 	Transform transform;
 
-	void addChild(std::unique_ptr<Entity> child)
+	template<typename T, typename... Args>
+	T& addChild(Args&&... args)
 	{
+		static_assert(std::is_base_of_v<Entity, T>, "T must derive from Entity");
+
+		auto child = std::make_unique<T>(std::forward<Args>(args)...);
         child->parent = this;
+
+		T& ref = *child;
 		children.emplace_back(std::move(child));
+		return ref;
 	}
 
 	//Update transform if it was changed

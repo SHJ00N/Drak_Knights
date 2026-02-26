@@ -6,6 +6,7 @@ BoneDemoObj::BoneDemoObj(Model &model, Shader &shader, glm::vec3 position, glm::
     transform.SetLocalPosition(position);
     transform.SetLocalScale(size);
     transform.SetLocalRotation(rotation);
+    transform.ComputeModelMatrix();
 
     m_collider = std::make_unique<AABB>(m_model);
 }

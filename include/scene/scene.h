@@ -12,6 +12,7 @@ class Renderable;
 class TerrainRenderer;
 class Light;
 class GameObject;
+class Particle;
 
 // operator for scene management
 enum class SceneOp { None, Push, Pop };
@@ -54,6 +55,7 @@ public:
     RenderType GetRenderType() { return renderType; }
     IBLData GetIBLData() { return IBLtextures; }
     std::vector<Renderable*> GetRenderables() { return renderables; }
+    std::vector<Particle*> GetParticles() { return particles; }
     TerrainRenderer* GetTerrainRenderer() { return terrainRenderer; }
     // setter
     void RequestClear() { Request = {SceneOp::None, {}}; }
@@ -65,6 +67,8 @@ protected:
     Camera *MainCamera = nullptr;
     // lights
     std::vector<Light*> Lights;
+    // particles
+    std::vector<Particle*> particles;
     // render type
     RenderType renderType;
     // IBL data

@@ -12,6 +12,7 @@ std::map<std::string, Shader>       ResourceManager::Shaders;
 std::map<std::string, Model>        ResourceManager::Models;
 std::map<std::string, Animation>    ResourceManager::Animations;
 std::map<std::string, TerrainTexture> ResourceManager::TerrainTextures;
+std::map<std::string, ComputeShader> ResourceManager::ComputeShaders;
 
 
 Shader ResourceManager::LoadShader(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile, const char *tcShaderFile, const char *teShaderFile, std::string name)
@@ -26,10 +27,22 @@ Shader& ResourceManager::GetShader(std::string name)
     return Shaders[name];
 }
 
-Texture2D ResourceManager::LoadTexture(const char *file, bool alpha, std::string name)
+ComputeShader ResourceManager::LoadComputeShader(const char *computeShaderFile, std::string name)
+{
+    if(ComputeShaders.find(name) == ComputeShaders.end())
+        ComputeShaders[name] = loadComputeShaderFromFile(computeShaderFile);
+    return ComputeShaders[name];
+}
+
+ComputeShader& ResourceManager::GetComputeShader(std::string name)
+{
+    return ComputeShaders[name];
+}
+
+Texture2D ResourceManager::LoadTexture(const char *file, bool alpha, std::string name, unsigned int wrap_s, unsigned int wrap_t, unsigned int filter_min, unsigned int filter_max)
 {
     if(Textures.find(name) == Textures.end())
-        Textures[name] = loadTextureFromFile(file, alpha);
+        Textures[name] = loadTextureFromFile(file, alpha, wrap_s, wrap_t, filter_min, filter_max);
     return Textures[name];
 }
 
@@ -90,12 +103,16 @@ void ResourceManager::Clear()
     // delet all terrain texture
     for (auto iter : TerrainTextures)
         iter.second.Clear();
+    // delete all compute shaders
+    for (auto iter : ComputeShaders)
+        glDeleteProgram(iter.second.ID);
 
     // clear maps
     Shaders.clear();
     Textures.clear();
     Models.clear();
     TerrainTextures.clear();
+    ComputeShaders.clear();
 }
 
 Shader ResourceManager::loadShaderFromFile(const char *vShaderFile, const char *fShaderFile, const char *gShaderFile, const char *tcShaderFile, const char *teShaderFile)
@@ -164,18 +181,52 @@ Shader ResourceManager::loadShaderFromFile(const char *vShaderFile, const char *
     return shader;
 }
 
-Texture2D ResourceManager::loadTextureFromFile(const char *file, bool alpha)
+ComputeShader ResourceManager::loadComputeShaderFromFile(const char *computeShaderFile)
+{
+    // 1. retrieve the compute shader source code from filePath
+    std::string computeCode;
+    try
+    {
+        // open file
+        std::ifstream computeShaderFile(computeShaderFile);
+        std::stringstream cShaderStream;
+        // read file's buffer contents into stream
+        cShaderStream << computeShaderFile.rdbuf();
+        // close file handler
+        computeShaderFile.close();
+        // convert stream into string
+        computeCode = cShaderStream.str();
+    }
+    catch (std::exception e)
+    {
+        std::cout << "ERROR::SHADER: Failed to read compute shader file" << std::endl;
+    }
+    const char *cShaderCode = computeCode.c_str();
+    // 2. now create shader object from source code
+    ComputeShader shader;
+    shader.Compile(cShaderCode);
+    return shader;
+}
+
+Texture2D ResourceManager::loadTextureFromFile(const char *file, bool alpha, unsigned int wrap_s, unsigned int wrap_t, unsigned int filter_min, unsigned int filter_max)
 {
     // create texture object
     Texture2D texture;
-    if (alpha)
+
+    // load image
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load(file, &width, &height, &nrChannels, 0);
+
+    if(alpha)
     {
         texture.Internal_Format = GL_RGBA;
         texture.Image_Format = GL_RGBA;
     }
-    // load image
-    int width, height, nrChannels;
-    unsigned char* data = stbi_load(file, &width, &height, &nrChannels, 0);
+    texture.Wrap_S = wrap_s;
+    texture.Wrap_T = wrap_t;
+    texture.Filter_Min = filter_min;
+    texture.Filter_Max = filter_max;
+    
     // now generate texture
     texture.Generate(width, height, data);
     // and finally free image data

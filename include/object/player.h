@@ -69,7 +69,8 @@ public:
     void RequestAttack();
     void RequestRoll();
 
-    glm::vec3 GetCenterSoketPosition();
+    glm::vec3 GetSoketLocalPosition(const std::string &name);
+    glm::vec3 GetSoketGlobalPosition(const std::string &name);
     MotionState GetMotionState() const;
     ActionState GetActionState() const;
 
@@ -108,6 +109,7 @@ private:
     void updateWorldHeight(const World &world);
 
     // configure sokets
+    const glm::mat4& getSoketMat(const std::string& name);
     void soketConfig();
 
     // control functions

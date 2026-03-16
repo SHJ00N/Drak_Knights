@@ -2,6 +2,7 @@
 #include "world/world.h"
 #include "frustum.h"
 #include "object/weapon.h"
+#include "particle/particle_manager.h"
 
 #include <iostream>
 
@@ -29,6 +30,21 @@ void Player::EquipWeapon(Weapon* weapon)
 }
 
 #pragma region override_functions
+void Player::Init()
+{
+    // init input state
+    m_actionState = ActionState::None;
+    m_motionState = MotionState::Idle;
+    bool m_inputIsRunning = false;
+    bool m_isRunning = false;
+    float m_actionTimer = 0.0f;
+    ActionState m_inputActionState = ActionState::None; 
+    float m_actionInputBufferTime = 0.0f;
+
+    // init object state
+    Health = 100;
+    IsDeath = false;
+}
 void Player::Update(const ObjectUpdateContext &context)
 {
     float dt = context.deltaTime;
@@ -54,11 +70,12 @@ void Player::Update(const ObjectUpdateContext &context)
         context.world->UpdateChunkCollider(collider);
     }
 
-    if(ObjectDestroyed) 
+    if(IsDeath) 
     {
-        EntityDestroyed = true;
-        RenderableDestroyed = true;
-        CollidableDestroyed = true;
+        ObjectDestroyed = true;
+        // EntityDestroyed = true;
+        // RenderableDestroyed = true;
+        // CollidableDestroyed = true;
     }
 
     for(auto&& child : children)
@@ -105,6 +122,23 @@ void Player::SocketConfig()
     m_sockets["RightHand"] = 88;
     m_sockets["Center"] = 27;
 }
+
+void Player::TakeDamage(int damage)
+{
+    if(IsDeath) return;
+    if(m_actionState == ActionState::Hit) return;
+
+    RequestHit();
+    Health -= damage;
+    ParticleManager::SpawnBloodParticle(this, GetSocketLocalPosition("Center") + glm::vec3(0.0f, 40.0f, 0.0f));
+
+    if(Health <= 0) 
+    {
+        IsDeath = true;
+        RequestDeath();
+    }
+}
+
 #pragma endregion
 
 #pragma region player_controls
@@ -159,6 +193,13 @@ void Player::RequestHit()
     startAction(ActionState::Hit);
 }
 
+void Player::RequestDeath()
+{
+    m_inputActionState = ActionState::Death;
+    m_actionInputBufferTime = ACTION_INPUT_BUFFER_TIME;
+    startAction(ActionState::Death);
+}
+
 ActionState Player::GetActionState() const
 {
     return m_actionState;
@@ -190,6 +231,9 @@ void Player::startAction(ActionState action)
     m_moveDirection = glm::vec3(0.0f);
     m_isRunning = false;
 
+    if(m_weapon)
+        m_weapon->RenderActive = true;
+
     // if animation playing is forced, animation will play without blending from current animation
     if(action == ActionState::Attack1)
     {
@@ -198,10 +242,15 @@ void Player::startAction(ActionState action)
     else if(action == ActionState::Roll)
     {
         SetAnimation(Animator3D.GetAnimation("Roll"), true); // force play roll animation
+        if(m_weapon) m_weapon->RenderActive = false;
     }
     else if(action == ActionState::Hit)
     {
         SetAnimation(Animator3D.GetAnimation("Hit"), true); // force play hit animation
+    }
+    else if(action == ActionState::Death)
+    {
+        SetAnimation(Animator3D.GetAnimation("Death"), true); // force play death animation
     }
 }
 
@@ -297,8 +346,8 @@ void Player::updateAnimation()
 
 void Player::move(Camera &camera, float dt)
 {
-    if(glm::length2(m_moveDirection) < 0.0001f) return;
-    if(m_actionState == ActionState::Attack1 || m_actionState == ActionState::Hit) return;
+    if(glm::length2(m_moveDirection) < 0.0001f) return; 
+    if(m_actionState == ActionState::Attack1 || m_actionState == ActionState::Hit || m_actionState == ActionState::Death) return;
 
     float velocity = Speed * dt * (m_isRunning ? 2.5f : 1.0f); // increase speed if running
     if(m_actionState == ActionState::Roll) velocity = 0.0f; // if rolling, only change direction
@@ -341,9 +390,14 @@ float NormalizeAngle(float angle)
 
 void Player::action(float dt)
 {
+    if(IsDeath) return;
+
     if(Animator3D.IsAnimationFinished())
     {
-        m_weapon->EndAttack();
+        if(m_weapon) 
+        {
+            m_weapon->EndAttack();
+        }
         transitionFromAction();
         return;
     }
@@ -352,6 +406,7 @@ void Player::action(float dt)
     {
         if(m_actionTimer >= 1.0f)
         {
+            m_weapon->RenderActive = true;
             m_weapon->EndAttack();
         }
         else if(m_actionTimer >= 0.5f)
@@ -360,7 +415,7 @@ void Player::action(float dt)
         }
     }
 
-    transformFromActionAnimation(dt); // apply root motion from animation
+    if(m_actionState != ActionState::Attack1) transformFromActionAnimation(dt); // apply root motion from animation
 }
 
 #pragma endregion

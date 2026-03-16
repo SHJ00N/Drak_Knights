@@ -41,10 +41,10 @@ void Weapon::Update(const ObjectUpdateContext &context)
 
 void Weapon::Render(const Frustum &frustum)
 {
+    if(!RenderActive) return;
     // inside frsutum
     if (m_aabb->isOnFrustum(frustum, transform))
     {
-        if(!m_owner || m_owner->GetActionState() == ActionState::Roll) return; // if weapon has owner and owner is rolling, don't render weapon
         m_renderer.Draw(m_shader, transform, m_model);
     }
 
@@ -58,10 +58,10 @@ void Weapon::Render(const Frustum &frustum)
 
 void Weapon::RenderShadow(const struct Frustum& frustum)
 {
+    if(!RenderActive) return;
     // inside frsutum
     if (m_aabb->isOnFrustum(frustum, transform))
     {
-        if(!m_owner || m_owner->GetActionState() == ActionState::Roll) return; // if weapon has owner and owner is rolling, don't render weapon
         m_renderer.DrawShadow(transform, m_model);
     }
 
@@ -77,7 +77,8 @@ void Weapon::OnCollisionEnter(Collider *other)
 {
     if(!m_isAttackActive) return;
 
-    if(other->Owner->ObjectLayer == Layer::Enemy)
+    if(m_owner->ObjectLayer == Layer::Player && other->Owner->ObjectLayer == Layer::Enemy
+    || m_owner->ObjectLayer == Layer::Enemy && other->Owner->ObjectLayer == Layer::Player)
     {
         if(m_hitTargets.find(other->Owner) != m_hitTargets.end()) return;
         Damageable *damageable = dynamic_cast<Damageable*>(other->Owner);
@@ -105,16 +106,17 @@ bool Weapon::IsAttacking()
     return m_isAttackActive;
 }
 
-void Weapon::SetOwner(Player *owner)
+void Weapon::SetOwner(GameObject *owner)
 {
     m_owner = owner;
+    m_socket = dynamic_cast<ISocket*>(owner);
 }
 
 void Weapon::updateTransform()
 {
-    if(!m_owner) return;
+    if(!m_socket || !m_owner) return;
 
     const std::string socket = "RightHand";
-    glm::mat4 mat = m_owner->GetSocketGlobalMatrix(socket) * m_offsetMatrix;
+    glm::mat4 mat = m_socket->GetSocketGlobalMatrix(socket) * m_offsetMatrix;
     transform.SetModelMatrix(mat);
 }

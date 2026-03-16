@@ -13,6 +13,7 @@
 class Model;
 class Shader;
 class Player;
+class ISocket;
 
 class Weapon : public GameObject, public Renderable, public Collidable
 {
@@ -32,12 +33,14 @@ public:
     bool IsAttacking();
 
     // setter
-    void SetOwner(Player *owner);
+    void SetOwner(GameObject *owner);
 private:
     Shader &m_shader;
     Model &m_model;
     StaticMeshRenderer m_renderer;
-    Player *m_owner = nullptr; // the player who holds this weapon
+    // weapon's owner and owner's socket
+    GameObject *m_owner = nullptr;
+    ISocket *m_socket = nullptr;
     // collider
     std::unique_ptr<AABB> m_aabb;
 

@@ -45,11 +45,27 @@ void Animator::UpdateAnimation(float dt){
     // update current animation time
     m_DeltaTime = dt;
     m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
-    m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+
+    if(!m_CurrentAnimation->IsLooping())
+    {
+        if(m_CurrentTime >= m_CurrentAnimation->GetDuration())
+        {
+            m_CurrentTime = std::min(m_CurrentTime, m_CurrentAnimation->GetDuration() - 0.0001f);
+            m_animationIsFinished = true;
+        }
+        else
+        {
+            m_animationIsFinished = false;
+        }
+    } 
+    else 
+    {
+        m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+        m_animationIsFinished = (m_CurrentTime < prevTime); // animation looped
+    }
     
-    m_animationIsFinished = (m_CurrentTime < prevTime); // animation looped
     // reset root motion delta on animation loop
-    if(m_CurrentTime < prevTime)
+    if(m_CurrentAnimation->IsLooping() && m_CurrentTime < prevTime)
     {
         m_currentRootInitialized = false; 
     }
@@ -89,6 +105,11 @@ void Animator::UpdateAnimation(float dt){
     }
 }
 
+void Animator::PlayAnimation(const std::string &name, bool force)
+{
+    PlayAnimation(m_Animations[name], force);
+}
+
 void Animator::PlayAnimation(Animation *pAnimation, bool force){
     if(!pAnimation) return;
 
@@ -102,7 +123,7 @@ void Animator::PlayAnimation(Animation *pAnimation, bool force){
     }
 
     // already playing the same animation
-    if(m_CurrentAnimation == pAnimation && !force) return;
+    if(m_CurrentAnimation == pAnimation && !force && !m_animationIsFinished) return;
 
     // if force play, immediately switch to new animation without blending
     if(force)

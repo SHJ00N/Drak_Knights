@@ -13,7 +13,13 @@
 #include "particle/particle_manager.h"
 #include "collision_system.h"
 #include "particle/blood_particle.h"
-#include "object/enemy.h"
+#include "object/enemy/enemy.h"
+
+std::vector<glm::vec3> wayPoints
+{
+    glm::vec3(2046.0f, 0.0f, 2046.0f),
+    glm::vec3(2050.0f, 0.0f, 2050.0f)
+};
 
 GamePlayScene::GamePlayScene(unsigned int width, unsigned int height) : Scene(width, height)
 {
@@ -73,6 +79,7 @@ void GamePlayScene::Init()
     ResourceManager::LoadModel("resources/object/knight2/SKM_DKM_Full.fbx", false, "knight");
     ResourceManager::LoadModel("resources/object/weapon/SM_DKM_Sword.fbx", false, "sword");
     ResourceManager::LoadModel("resources/object/Enemy/SKM_DKF_Full.fbx", true, "enemy");
+    ResourceManager::LoadModel("resources/object/weapon/SM_DKM_Sword.fbx", true, "enemy_sword");
     // load animations
     // player
     ResourceManager::LoadAnimation("resources/animation/knight2/Anim_DKM_Idle_Alert.fbx", ResourceManager::GetModel("knight"), "knight_idle");
@@ -81,12 +88,14 @@ void GamePlayScene::Init()
     ResourceManager::LoadAnimation("resources/animation/knight2/Anim_DKM_Attack_01.fbx", ResourceManager::GetModel("knight"), "knight_attack1", false);
     ResourceManager::LoadAnimation("resources/animation/knight2/Stand To Roll.fbx", ResourceManager::GetModel("knight"), "knight_roll", false);
     ResourceManager::LoadAnimation("resources/animation/knight2/Anim_DKM_Hit_Alert_Fwd.fbx", ResourceManager::GetModel("knight"), "knight_hit", false);
+    ResourceManager::LoadAnimation("resources/animation/knight2/Anim_DKM_Death.fbx", ResourceManager::GetModel("knight"), "knight_death", false);
     // enemy
     ResourceManager::LoadAnimation("resources/animation/enemy/Anim_DKF_Idle_Alert.fbx", ResourceManager::GetModel("enemy"), "enemy_idle");
     ResourceManager::LoadAnimation("resources/animation/enemy/Anim_DKF_Walk_Alert_Fwd.fbx", ResourceManager::GetModel("enemy"), "enemy_walk");
     ResourceManager::LoadAnimation("resources/animation/enemy/Anim_DKF_Attack_01.fbx", ResourceManager::GetModel("enemy"), "enemy_attack1", false);
     ResourceManager::LoadAnimation("resources/animation/enemy/Anim_DKF_Hit_Alert_Fwd.fbx", ResourceManager::GetModel("enemy"), "enemy_hit", false);
     ResourceManager::LoadAnimation("resources/animation/enemy/Anim_DKF_Death.fbx", ResourceManager::GetModel("enemy"), "enemy_death", false);
+    ResourceManager::LoadAnimation("resources/animation/enemy/Anim_DKF_Run_Alert_Fwd.fbx", ResourceManager::GetModel("enemy"), "enemy_run");
     // create IBL textures
     IBLtextures = IBLGenerator::GenerateIBLFromHDR("resources/texture/galaxy_hdr.png");
     // create main camera
@@ -102,6 +111,7 @@ void GamePlayScene::Init()
     player->AddAnimation("Attack1", &ResourceManager::GetAnimation("knight_attack1"));
     player->AddAnimation("Roll", &ResourceManager::GetAnimation("knight_roll"));
     player->AddAnimation("Hit", &ResourceManager::GetAnimation("knight_hit"));
+    player->AddAnimation("Death", &ResourceManager::GetAnimation("knight_death"));
     renderables.push_back(player); // add to renderables list
     gameObjects.push_back(player); // add to game objects list
     collidables.push_back(player);
@@ -115,19 +125,25 @@ void GamePlayScene::Init()
     enemy = &Root->addChild<Enemy>(ResourceManager::GetModel("enemy"), ResourceManager::GetShader("boneModel"), glm::vec3(2046.0f, 0.0f, 2046.0f), glm::vec3(0.01f), glm::vec3(0.0f));
     enemy->AddAnimation("Idle", &ResourceManager::GetAnimation("enemy_idle"));
     enemy->AddAnimation("Walk", &ResourceManager::GetAnimation("enemy_walk"));
-    enemy->AddAnimation("Attack1", &ResourceManager::GetAnimation("enemy_attack1"));
+    enemy->AddAnimation("Attack", &ResourceManager::GetAnimation("enemy_attack1"));
     enemy->AddAnimation("Hit", &ResourceManager::GetAnimation("enemy_hit"));
     enemy->AddAnimation("Death", &ResourceManager::GetAnimation("enemy_death"));
+    enemy->AddAnimation("Run", &ResourceManager::GetAnimation("enemy_run"));
     renderables.push_back(enemy); // add to renderables list
     gameObjects.push_back(enemy); // add to game objects list
     collidables.push_back(enemy);
+    enemy->SetupBehaviorTree(wayPoints, *player);
+    enemy->EquipWeapon(ResourceManager::GetModel("sword"), ResourceManager::GetShader("staticModel"), glm::vec3(0.0f), glm::vec3(90.0f, 0.0f, 0.0f), glm::vec3(1.0f));
 
     Start();
 }
 
 void GamePlayScene::Start()
 {
-
+    for(auto &object : gameObjects)
+    {
+        object->Init();
+    }
 }
 
 void GamePlayScene::Update(float dt)
@@ -170,7 +186,7 @@ void GamePlayScene::ProcessInput(float dt)
 
     if(MouseButtonRight)
     {
-        ParticleManager::Instance->SpawnBloodParticle(player, player->GetSocketLocalPosition("Center"));
+        ParticleManager::Instance->SpawnBloodParticle(player, player->GetSocketLocalPosition("Center") + glm::vec3(0.0f, 40.0f, 0.0f));
     }
 }
 

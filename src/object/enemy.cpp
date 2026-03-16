@@ -1,7 +1,8 @@
-#include "object/enemy.h"
+#include "object/enemy/enemy.h"
 #include "world/world.h"
 #include "frustum.h"
 #include "particle/particle_manager.h"
+#include "object/weapon.h"
 
 #include <iostream>
 
@@ -21,14 +22,36 @@ Enemy::Enemy(Model &model, Shader &shader, glm::vec3 position, glm::vec3 scale, 
     InitSocket(&Animator3D, &transform);
 }
 
+void Enemy::EquipWeapon(Model &model, Shader &shader, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
+{
+    m_weapon = &this->addChild<Weapon>(model, shader, position, rotation, scale, Layer::Weapon);
+    m_weapon->SetOwner(this);
+}
+
+Weapon* Enemy::GetWeapon() const
+{
+    return m_weapon;
+}
+
 #pragma region override
+void Enemy::Init()
+{
+    SetAnimation(Animator3D.GetAnimation("Idle"), false);
+    Health = 500;
+    IsHit = false;
+    IsDeath = false;
+    IsAttacking = false;
+}
+
 void Enemy::Update(const ObjectUpdateContext &context)
 {
     float dt = context.deltaTime;
-    SetAnimation(Animator3D.GetAnimation("Idle"), false);
     UpdateAnimation(dt);
+    
+    if(m_BT) m_BT->Update(context);
+    
     updateWorldHeight(*context.world);
-
+    
     if(transform.IsDirty())
     {
         updateSelfAndChild();
@@ -42,11 +65,12 @@ void Enemy::Update(const ObjectUpdateContext &context)
     context.world->UpdateChunkCollider(collider);
     
     // check destroyed
-    if(ObjectDestroyed)
+    if(IsDeath)
     {
-        EntityDestroyed = true;
-        RenderableDestroyed = true;
-        CollidableDestroyed = true;
+        ObjectDestroyed = true;
+        // EntityDestroyed = true;
+        // RenderableDestroyed = true;
+        // CollidableDestroyed = true;
     }
 
     // update child
@@ -90,23 +114,28 @@ void Enemy::RenderShadow(const Frustum &frustum)
 
 void Enemy::TakeDamage(int damage)
 {
-    std::cout << "hit!" << std::endl;
+    if(IsHit || IsDeath) return;
+
+    IsHit = true;
+    SetAnimation(Animator3D.GetAnimation("Hit"), true);
     Health -= damage;
-    ParticleManager::SpawnBloodParticle(this, GetSocketLocalPosition("Center"));
+    ParticleManager::SpawnBloodParticle(this, GetSocketLocalPosition("Center") + glm::vec3(0.0f, 40.0f, 0.0f));
 
     if(Health <= 0) 
     {
-        ObjectDestroyed = true;
+        IsDeath = true;
+        SetAnimation(Animator3D.GetAnimation("Death"), true);
     }
 }
 
 void Enemy::SocketConfig()
 {
-    m_sockets["RightHand"] = 88;
-    m_sockets["Center"] = 27;
+    m_sockets["RightHand"] = 85;
+    m_sockets["Center"] = 10;
 }
 #pragma endregion
 
+#pragma region private
 void Enemy::updateWorldHeight(const World &world)
 {
     glm::vec3 localPos = transform.GetLocalPosition();
@@ -115,4 +144,11 @@ void Enemy::updateWorldHeight(const World &world)
 
     localPos.y = height;
     transform.SetLocalPosition(localPos);
+}
+#pragma endregion
+
+void Enemy::SetupBehaviorTree(std::vector<glm::vec3> &wayPoints, GameObject &target)
+{
+    m_BT = std::make_unique<EnemyBT>(*this, wayPoints, target);
+    m_BT->Init();
 }

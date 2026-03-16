@@ -15,6 +15,7 @@ class Animator{
 public:
     Animator();
     void UpdateAnimation(float dt);
+    void PlayAnimation(const std::string &name, bool force = false);
     void PlayAnimation(Animation *pAnimation, bool force = false);
     void CalculateBoneTransform(const AssimpNodeData *node, glm::mat4 parentTransform);
     void CalculateBoneTransformBlended(const AssimpNodeData *node, glm::mat4 parentTransform, float weight);

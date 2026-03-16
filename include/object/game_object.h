@@ -25,7 +25,8 @@ public:
     // object state
     glm::vec2 Velocity;
     bool ObjectDestroyed = false;
-    
+
+    virtual void Init() { }
     virtual void Update(const ObjectUpdateContext &context) = 0;
     virtual ~GameObject() = default;
 };

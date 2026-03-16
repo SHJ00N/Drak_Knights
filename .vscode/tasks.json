@@ -6,6 +6,7 @@
             "label": "C/C++: cl.exe 활성 파일 빌드",
             "command": "cl.exe",
             "args": [
+                "/std:c++17",
                 "/Zi",
                 "/EHsc",
                 "/nologo",
@@ -18,6 +19,7 @@
                 "${workspaceFolder}\\src\\animation\\*.cpp",
                 "${workspaceFolder}\\src\\model\\*.cpp",
                 "${workspaceFolder}\\src\\object\\*.cpp",
+                "${workspaceFolder}\\src\\object\\behavior\\*.cpp",
                 "${workspaceFolder}\\src\\render\\*.cpp",
                 "${workspaceFolder}\\src\\scene\\*.cpp",
                 "${workspaceFolder}\\src\\world\\*.cpp",

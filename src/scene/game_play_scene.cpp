@@ -14,6 +14,7 @@
 #include "collision_system.h"
 #include "particle/blood_particle.h"
 #include "object/enemy/enemy.h"
+#include "object/enemy/enemy_spawn_manager.h"
 
 std::vector<glm::vec3> wayPoints
 {
@@ -58,7 +59,12 @@ void GamePlayScene::Init()
 {
     particleManager = new ParticleManager();
     ParticleManager::Instance = particleManager;
+    
     collisionSystem = new CollisionSystem();
+    
+    enemySpawnManager = new EnemySpawnManager();
+    enemySpawnManager->LoadSpawnDataFromFile("resources/enemy_spawn_data/spawn_data.txt");
+
     // load shaders
     ResourceManager::LoadShader("shaders/model_shader/boneMesh.vert", "shaders/model_shader/mesh.frag", nullptr, nullptr, nullptr, "boneModel");
     ResourceManager::LoadShader("shaders/model_shader/staticMesh.vert", "shaders/model_shader/mesh.frag", nullptr, nullptr, nullptr, "staticModel");
@@ -122,19 +128,6 @@ void GamePlayScene::Init()
     collidables.push_back(&sword);
     player->EquipWeapon(&sword);
 
-    enemy = &Root->addChild<Enemy>(ResourceManager::GetModel("enemy"), ResourceManager::GetShader("boneModel"), glm::vec3(2046.0f, 0.0f, 2046.0f), glm::vec3(0.01f), glm::vec3(0.0f));
-    enemy->AddAnimation("Idle", &ResourceManager::GetAnimation("enemy_idle"));
-    enemy->AddAnimation("Walk", &ResourceManager::GetAnimation("enemy_walk"));
-    enemy->AddAnimation("Attack", &ResourceManager::GetAnimation("enemy_attack1"));
-    enemy->AddAnimation("Hit", &ResourceManager::GetAnimation("enemy_hit"));
-    enemy->AddAnimation("Death", &ResourceManager::GetAnimation("enemy_death"));
-    enemy->AddAnimation("Run", &ResourceManager::GetAnimation("enemy_run"));
-    renderables.push_back(enemy); // add to renderables list
-    gameObjects.push_back(enemy); // add to game objects list
-    collidables.push_back(enemy);
-    enemy->SetupBehaviorTree(wayPoints, *player);
-    enemy->EquipWeapon(ResourceManager::GetModel("sword"), ResourceManager::GetShader("staticModel"), glm::vec3(0.0f), glm::vec3(90.0f, 0.0f, 0.0f), glm::vec3(1.0f));
-
     Start();
 }
 
@@ -144,6 +137,7 @@ void GamePlayScene::Start()
     {
         object->Init();
     }
+    enemySpawnManager->Init(this, *player);
 }
 
 void GamePlayScene::Update(float dt)
@@ -163,6 +157,8 @@ void GamePlayScene::Update(float dt)
     world->Update(MainCamera->cameraPos);
 
     collisionSystem->Step(*world);
+
+    enemySpawnManager->Update(this, *player, dt);
 
     // remove destroyed objects
     CleanUpLists();

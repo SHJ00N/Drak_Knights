@@ -41,6 +41,8 @@ void Enemy::Init()
     IsHit = false;
     IsDeath = false;
     IsAttacking = false;
+
+    m_deathTimer = 0.0f;
 }
 
 void Enemy::Update(const ObjectUpdateContext &context)
@@ -67,10 +69,14 @@ void Enemy::Update(const ObjectUpdateContext &context)
     // check destroyed
     if(IsDeath)
     {
-        ObjectDestroyed = true;
-        // EntityDestroyed = true;
-        // RenderableDestroyed = true;
-        // CollidableDestroyed = true;
+        m_deathTimer += dt;
+        if(m_deathTimer >= 5.0f)
+        {
+            ObjectDestroyed = true;
+            EntityDestroyed = true;
+            RenderableDestroyed = true;
+            CollidableDestroyed = true;
+        }
     }
 
     // update child

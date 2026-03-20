@@ -27,11 +27,11 @@ BTState EnemyAttack::Evaluate(float dt)
     }
 
     m_attackTimer += dt;
-    if(m_attackTimer >= 1.2f)
+    if(m_attackTimer >= 1.0f)
     {
         weapon->EndAttack();
     }
-    else if(m_attackTimer >= 0.5f)
+    else if(m_attackTimer >= 0.6f)
     {
         if(!weapon->IsAttacking())
             weapon->StartAttack();

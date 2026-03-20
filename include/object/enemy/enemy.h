@@ -62,6 +62,8 @@ private:
     // behavior tree
     std::unique_ptr<EnemyBT> m_BT;
 
+    float m_deathTimer = 0.0f;
+
     // set height from world
     void updateWorldHeight(const World &world);
 };

@@ -396,6 +396,7 @@ void Player::action(float dt)
     {
         if(m_weapon) 
         {
+            m_weapon->RenderActive = true;
             m_weapon->EndAttack();
         }
         transitionFromAction();
@@ -406,7 +407,6 @@ void Player::action(float dt)
     {
         if(m_actionTimer >= 1.0f)
         {
-            m_weapon->RenderActive = true;
             m_weapon->EndAttack();
         }
         else if(m_actionTimer >= 0.5f)

@@ -6,12 +6,6 @@
 #include "scene/scene.h"
 #include "camera.h"
 
-class Player;
-class World;
-class BoneDemoObj;
-class Weapon;
-class CollisionSystem;
-class Enemy;
 
 class GamePlayScene : public Scene
 {
@@ -29,10 +23,11 @@ public:
 
 private:
     // obj
-    Player* player;
-    Enemy* enemy;
-    BoneDemoObj *boneDemoObj;
-    World *world;
-    Weapon *sword;
-    CollisionSystem * collisionSystem;
+    class Player* player;
+    class Enemy* enemy;
+    class BoneDemoObj *boneDemoObj;
+    class World *world;
+    class Weapon *sword;
+    class CollisionSystem *collisionSystem;
+    class EnemySpawnManager *enemySpawnManager;
 };

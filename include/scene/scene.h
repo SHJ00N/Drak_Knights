@@ -67,8 +67,9 @@ public:
     ParticleManager* GetParticleManager() { return particleManager; }
     RenderType GetRenderType() { return renderType; }
     IBLData GetIBLData() { return IBLtextures; }
-    std::vector<Renderable*> GetRenderables() { return renderables; }
-    std::vector<Collidable*> GetCollidables() { return collidables; }
+    std::vector<GameObject*>& GetGameObjects() { return gameObjects; }
+    std::vector<Renderable*>& GetRenderables() { return renderables; }
+    std::vector<Collidable*>& GetCollidables() { return collidables; }
     TerrainRenderer* GetTerrainRenderer() { return terrainRenderer; }
     // setter
     void RequestClear() { Request = {SceneOp::None, {}}; }

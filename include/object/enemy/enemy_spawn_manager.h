@@ -7,6 +7,7 @@
 struct SpawnData
 {
     glm::vec3 position;
+    glm::vec3 rotation;
     std::vector<glm::vec3> wayPoints;
 
     float respawnTime;

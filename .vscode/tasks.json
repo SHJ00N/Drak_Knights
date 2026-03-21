@@ -35,6 +35,7 @@
 
                 "glfw3dll.lib",
                 "opengl32.lib",
+                "freetype.lib",
                 "assimp-vc143-mtd.lib"
             ],
             "options": {

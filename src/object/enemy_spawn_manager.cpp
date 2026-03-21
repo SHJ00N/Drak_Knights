@@ -22,6 +22,11 @@ void EnemySpawnManager::LoadSpawnDataFromFile(const std::string &path)
         ss >> str;
         ss >> data.position.x >> data.position.y >> data.position.z;
 
+        // rotation
+        getline(file, line);
+        std::stringstream rot(line);
+        rot >> str;
+        rot >> data.rotation.x >> data.rotation.y >> data.rotation.z;
         // waypoints
         int wayPointCount;
         ss >> wayPointCount;
@@ -93,7 +98,7 @@ void EnemySpawnManager::Update(Scene *scene, GameObject& target, float dt)
 void EnemySpawnManager::spawnEnemy(Scene *scene, GameObject &target, SpawnRunTime &spawn)
 {
      // spawn enemy
-    auto &enemy = scene->Root->addChild<Enemy>(ResourceManager::GetModel("enemy"), ResourceManager::GetShader("boneModel"), spawn.data.position, glm::vec3(0.01f), glm::vec3(0.0f));
+    auto &enemy = scene->Root->addChild<Enemy>(ResourceManager::GetModel("enemy"), ResourceManager::GetShader("boneModel"), spawn.data.position, glm::vec3(0.01f), spawn.data.rotation);
     enemy.AddAnimation("Idle", &ResourceManager::GetAnimation("enemy_idle"));
     enemy.AddAnimation("Walk", &ResourceManager::GetAnimation("enemy_walk"));
     enemy.AddAnimation("Attack", &ResourceManager::GetAnimation("enemy_attack1"));

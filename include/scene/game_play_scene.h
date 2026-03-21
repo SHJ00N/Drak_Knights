@@ -20,6 +20,7 @@ public:
     void Update(float dt) override;
     void ProcessInput(float dt) override;
     void End() override;
+    void UIUpdate() override;
 
 private:
     // obj

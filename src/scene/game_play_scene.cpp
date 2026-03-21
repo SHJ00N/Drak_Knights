@@ -47,6 +47,7 @@ GamePlayScene::~GamePlayScene()
     delete terrainRenderer;
     delete collisionSystem;
     delete particleManager;
+    delete enemySpawnManager;
     // all lists clear
     gameObjects.clear();
     collidables.clear();
@@ -59,7 +60,7 @@ void GamePlayScene::Init()
 {
     particleManager = new ParticleManager();
     ParticleManager::Instance = particleManager;
-    
+
     collisionSystem = new CollisionSystem();
     
     enemySpawnManager = new EnemySpawnManager();
@@ -110,7 +111,7 @@ void GamePlayScene::Init()
     Lights.push_back(new DirLight(LightType::Direction, glm::vec3(-0.6f, -1.0f, 0.7f), glm::vec3(0.4f, 0.6f, 1.0f), 1.0f));
 
     // create game objects and set animator
-    player = &Root->addChild<Player>(ResourceManager::GetModel("knight"), ResourceManager::GetShader("boneModel"), glm::vec3(2046.0f, 0.0f, 2046.0f), glm::vec3(0.01f), glm::vec3(0.0f), glm::vec2(0.0f), Layer::Player);
+    player = &Root->addChild<Player>(ResourceManager::GetModel("knight"), ResourceManager::GetShader("boneModel"), glm::vec3(2090.0f, 0.0f, 1800.0f), glm::vec3(0.01f), glm::vec3(0.0f), glm::vec2(0.0f), Layer::Player);
     player->AddAnimation("Idle", &ResourceManager::GetAnimation("knight_idle"));
     player->AddAnimation("Walk", &ResourceManager::GetAnimation("knight_walk"));
     player->AddAnimation("Run", &ResourceManager::GetAnimation("knight_run"));
@@ -142,14 +143,19 @@ void GamePlayScene::Start()
 
 void GamePlayScene::Update(float dt)
 {
+    // clear texts
+    uiTexts.clear();
+
     // update all game objects
     ObjectUpdateContext context{dt, world, MainCamera};
     for(auto& object : gameObjects)
     {
         object->Update(context);
     }
+
     // update particle
     particleManager->Update(dt);
+
     // update camera
     MainCamera->Update(player->GetSocketGlobalPosition("Center"), dt);
 
@@ -159,6 +165,8 @@ void GamePlayScene::Update(float dt)
     collisionSystem->Step(*world);
 
     enemySpawnManager->Update(this, *player, dt);
+
+    UIUpdate();
 
     // remove destroyed objects
     CleanUpLists();
@@ -184,6 +192,29 @@ void GamePlayScene::ProcessInput(float dt)
     {
         ParticleManager::Instance->SpawnBloodParticle(player, player->GetSocketLocalPosition("Center") + glm::vec3(0.0f, 40.0f, 0.0f));
     }
+}
+
+void GamePlayScene::UIUpdate()
+{
+    // player Health UI
+    uiTexts.push_back(
+        {
+            "HP : " + std::to_string(player->Health),
+            20.0f, 20.0f,
+            1.0f,
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        }
+    );
+
+    glm::vec3 playerPos = player->transform.GetGlobalPosition();
+    uiTexts.push_back(
+        {
+            "X : " + std::to_string(playerPos.x) + " Y : " + std::to_string(playerPos.y) + " Z : " + std::to_string(playerPos.z),
+            20.0f, 45.0f,
+            0.7f,
+            glm::vec3(1.0f, 1.0f, 1.0f)
+        }
+    );
 }
 
 void GamePlayScene::End()

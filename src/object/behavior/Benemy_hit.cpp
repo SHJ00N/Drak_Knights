@@ -12,7 +12,7 @@ BTState EnemyHit::Evaluate(float dt)
         if(m_enemy.Animator3D.IsAnimationFinished())
         {
             m_enemy.IsHit = false;
-            m_enemy.Animator3D.PlayAnimation("Walk");
+            m_enemy.Animator3D.PlayAnimation("Idle");
             state = BTState::Failure;
             return state;
         }

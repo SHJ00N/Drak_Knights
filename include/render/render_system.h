@@ -13,6 +13,7 @@ class SSAOPass;
 class SkyBoxPass;
 class ParticlePass;
 class DebugPass;
+class UIPass;
 
 // ubo state : 1 : camera, 2 : dirlight, 3 : cascaded shadow matrices, 4 : csm data
 class RenderSystem
@@ -39,6 +40,7 @@ private:
     SkyBoxPass *m_skyBoxPass = nullptr;
     ParticlePass *m_particlePass = nullptr;
     DebugPass *m_debugPass = nullptr;
+    UIPass *m_uiPass = nullptr;
     
     // ubo
     void configureUBO();

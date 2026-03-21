@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <memory>
+#include <string>
 
 #include "camera.h"
 #include "ibl_generator.h"
@@ -27,6 +28,14 @@ struct SceneRequest
 };
 
 enum class RenderType { Forward, Deferred };
+
+struct UIText
+{
+    std::string text;
+    float x, y;
+    float scale;
+    glm::vec3 color;
+};
 
 class Scene
 {
@@ -53,6 +62,7 @@ public:
     virtual void Update(float dt) = 0;
     virtual void ProcessInput(float dt) = 0;
     virtual void End() = 0;
+    virtual void UIUpdate() = 0;
     void CleanUpLists() 
     {
         gameObjects.erase(std::remove_if(gameObjects.begin(), gameObjects.end(), [](GameObject *obj){ return obj->EntityDestroyed; }), gameObjects.end());
@@ -70,6 +80,7 @@ public:
     std::vector<GameObject*>& GetGameObjects() { return gameObjects; }
     std::vector<Renderable*>& GetRenderables() { return renderables; }
     std::vector<Collidable*>& GetCollidables() { return collidables; }
+    std::vector<UIText>& GetUITexts() { return uiTexts; }
     TerrainRenderer* GetTerrainRenderer() { return terrainRenderer; }
     // setter
     void RequestClear() { Request = {SceneOp::None, {}}; }
@@ -93,6 +104,8 @@ protected:
     std::vector<GameObject*> gameObjects;
     // collidable members for debug
     std::vector<Collidable*> collidables;
+    // text members
+    std::vector<UIText> uiTexts;
     // terrain renderer
     TerrainRenderer *terrainRenderer = nullptr;
     // scene request functions

@@ -39,7 +39,8 @@ std::unique_ptr<BTNode> EnemyBT::SetupTree()
     findTargetSeq.push_back(std::make_unique<MoveToTarget>(m_enemy, m_target, m_speed * 3.0f));
     children.push_back(std::make_unique<Sequence>(std::move(findTargetSeq)));
     // add patrol
-    children.push_back(std::make_unique<Patrol>(m_enemy, m_wayPoints, m_speed));
+    if(m_wayPoints.size())
+        children.push_back(std::make_unique<Patrol>(m_enemy, m_wayPoints, m_speed));
 
     return std::make_unique<Selector>(std::move(children));
 }

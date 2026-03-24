@@ -1,13 +1,28 @@
 {
     "version": "2.0.0",
+    "windows": {
+        "options": {
+        "shell": {
+            "executable": "cmd.exe",
+            "args": [
+                "/C",
+                // The path to VsDevCmd.bat depends on the version of Visual Studio you have installed.
+                "\"C:/Program Files/Microsoft Visual Studio/2022/Community/Common7/Tools/VsDevCmd.bat\" -arch=x64",
+                "&&"
+                ]
+            }
+        }
+    },
     "tasks": [
         {
-            "type": "cppbuild",
-            "label": "C/C++: cl.exe 활성 파일 빌드",
+            "type": "shell",
+            "label": "build",
             "command": "cl.exe",
             "args": [
                 "/std:c++17",
-                "/Zi",
+                "/O2",
+                "/DNDEBUG",
+                "/MT",
                 "/EHsc",
                 "/nologo",
                 "/utf-8",
@@ -27,8 +42,8 @@
                 "${workspaceFolder}\\src\\debug\\*.cpp",
                 
                 "/Fo${workspaceFolder}\\build\\obj\\",
-                "/Fd${workspaceFolder}\\build\\pdb\\ProjectF.pdb",
-                "/Fe${workspaceFolder}\\build\\bin\\ProjectF.exe",
+                "/Fd${workspaceFolder}\\build\\pdb\\DarkKnights.pdb",
+                "/Fe${workspaceFolder}\\build\\bin\\DarkKnights.exe",
 
                 "/link",
                 "/LIBPATH:${workspaceFolder}\\lib",
@@ -36,8 +51,8 @@
                 "glfw3dll.lib",
                 "opengl32.lib",
                 "freetype.lib",
-                "fmodL_vc.lib",
-                "assimp-vc143-mtd.lib"
+                "fmod_vc.lib",
+                "assimp-vc143-mt.lib",
             ],
             "options": {
                 "cwd": "${workspaceFolder}\\build\\bin",
@@ -45,11 +60,91 @@
             "problemMatcher": [
                 "$msCompile"
             ],
+            "detail": "디버거에서 생성된 작업입니다."
+        },
+
+        {
+            "label": "copy-resources",
+            "type": "shell",
+            "command": "xcopy",
+            "args": [
+                "/E",
+                "/I",
+                "/Y",
+                "${workspaceFolder}\\resources\\",
+                "${workspaceFolder}\\build\\bin\\resources\\"
+            ]
+        },
+
+        {
+            "label": "copy-shaders",
+            "type": "shell",
+            "command": "xcopy",
+            "args": [
+                "/E",
+                "/I",
+                "/Y",
+                "${workspaceFolder}\\shaders\\",
+                "${workspaceFolder}\\build\\bin\\shaders\\"
+            ]
+        },
+
+        {
+            "label": "copy-dll",
+            "type": "shell",
+            "command": "xcopy",
+            "args": [
+                "/Y",
+                "/I",
+                "${workspaceFolder}\\lib\\*.dll",
+                "${workspaceFolder}\\build\\bin\\"
+            ]
+        },
+
+        {
+            "label": "clean-dist",
+            "type": "shell",
+            "command": "rmdir",
+            "args": [
+                "/S",
+                "/Q",
+                "${workspaceFolder}\\dist\\"
+            ]
+        },
+
+        {
+            "label": "mkdir-dist",
+            "type": "shell",
+            "command": "mkdir",
+            "args": [
+                "${workspaceFolder}\\dist\\DarkKnights\\"
+            ]
+        },
+
+        {
+            "label": "copy-bin-to-dist",
+            "type": "shell",
+            "command": "xcopy",
+            "args": [
+                "/E",
+                "/Y",
+                "/I",
+                "${workspaceFolder}\\build\\bin\\",
+                "${workspaceFolder}\\dist\\DarkKnights\\"
+            ]
+        },
+
+        {
+            "label": "package",
+            "type": "shell",
+            "dependsOn": ["build", "copy-resources", "copy-shaders", "copy-dll", "clean-dist", "mkdir-dist", "copy-bin-to-dist"],
+            "dependsOrder": "sequence",
+            "command": "cmd",
+            "args": [ ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "디버거에서 생성된 작업입니다."
         }
     ]
 }

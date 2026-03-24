@@ -49,10 +49,10 @@ void Camera::Update(const glm::vec3 &targetPos, float dt){
     cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
     cameraUp    = glm::normalize(glm::cross(cameraRight, cameraFront)); 
 
-    // zoom when the pitch angle is low
+    // // zoom when the pitch angle is low
     // if(pitch > 10.0f)
     // {
-    //     fov = glm::mix(fov, 25.0f, dt * 6.0f);
+    //     fov = glm::mix(fov, 30.0f, dt * 6.0f);
     // } 
     // else 
     // {
@@ -80,7 +80,7 @@ glm::mat4 Camera::GetProjectionMatrix(float width, float height)
 void Camera::ProcessMouseScroll(float yoffset){
     targetFov -= yoffset;
 
-    if(targetFov < 25.0f) targetFov = 25.0f;
+    if(targetFov < 30.0f) targetFov = 30.0f;
     if(targetFov > 45.0f) targetFov = 45.0f;
 }
 

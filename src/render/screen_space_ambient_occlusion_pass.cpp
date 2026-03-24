@@ -9,8 +9,8 @@ SSAOPass::SSAOPass(unsigned int width, unsigned int height)
 : m_width(width), m_height(height),  m_ssaoFBO(0), m_ssaoTexture(0), m_ssaoBlurFBO(0), m_ssaoBlurTexture(0), m_noiseTexture(0), m_quadVAO(0), m_quadVBO(0)
 {
     // load shader
-    ResourceManager::LoadShader("shaders/sample_shader/9.ssao.vert", "shaders/sample_shader/9.ssao.frag", nullptr, nullptr, nullptr, "SSAO");
-    ResourceManager::LoadShader("shaders/sample_shader/9.ssao.vert", "shaders/sample_shader/9.ssao_blur.frag", nullptr, nullptr, nullptr, "SSAOBlur");
+    ResourceManager::LoadShader("shaders/SSAO/9.ssao.vert", "shaders/SSAO/9.ssao.frag", nullptr, nullptr, nullptr, "SSAO");
+    ResourceManager::LoadShader("shaders/SSAO/9.ssao.vert", "shaders/SSAO/9.ssao_blur.frag", nullptr, nullptr, nullptr, "SSAOBlur");
     // configure uniforms
     // ssao shader
     ResourceManager::GetShader("SSAO").Use();

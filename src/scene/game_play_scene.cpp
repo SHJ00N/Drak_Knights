@@ -75,9 +75,9 @@ void GamePlayScene::Init()
     ResourceManager::LoadShader("shaders/model_shader/staticMesh.vert", "shaders/model_shader/mesh.frag", nullptr, nullptr, nullptr, "staticModel");
     ResourceManager::LoadShader("shaders/terrain_shader/terrain.vert", "shaders/terrain_shader/terrain.frag", nullptr, "shaders/terrain_shader/terrain.tcs", "shaders/terrain_shader/terrain.tes", "terrainShader");
     ResourceManager::LoadShader("shaders/csm_shader/terrainShadow.vert", "shaders/csm_shader/cascadedShadow.frag", "shaders/csm_shader/cascadedShadow.geom", "shaders/csm_shader/terrainShadow.tesc", "shaders/csm_shader/terrainShadow.tese", "terrainShadow");
-    ResourceManager::LoadShader("shaders/sample_shader/blood.vert", "shaders/sample_shader/blood.frag", nullptr, nullptr, nullptr, "blood");
+    ResourceManager::LoadShader("shaders/particle_shader/blood.vert", "shaders/particle_shader/blood.frag", nullptr, nullptr, nullptr, "blood");
     // load compute shaders
-    ResourceManager::LoadComputeShader("shaders/sample_shader/compute.comp", "bloodCompute");
+    ResourceManager::LoadComputeShader("shaders/particle_shader/compute.comp", "bloodCompute");
 
     // load texture
     ResourceManager::LoadTerrainTexture("resources/texture/Diffuse_16BIT_PNG.png", "resources/texture/CombinedNormal_8BIT_PNG.png", "resources/texture/Roughness_16BIT_PNG.png", "snowField", false);

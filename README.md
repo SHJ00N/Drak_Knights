@@ -8,7 +8,7 @@ This project is a 3D game developed to learn and practice OpenGL and graphics th
 WASD: movement\
 Space: roll\
 Mouse Left: attack\
-Mouse Wheel: zoom
+Mouse Wheel: zoom\
 ESC: exit game
 
 ## Downloads

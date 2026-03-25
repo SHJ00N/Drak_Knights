@@ -39,3 +39,6 @@
 *.dwo
 
 .fake
+
+build/
+dist/

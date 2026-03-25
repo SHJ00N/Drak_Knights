@@ -6,5 +6,14 @@ This project is a 3D game developed to learn and practice OpenGL and graphics th
 ### Controls
 
 WASD : movement\
-Left Mouse : attack\
-Space : roll
+Space : roll\
+Mouse Left : attack\
+Mouse Wheel : zoom
+
+## Downloads
+### Release
+- [DarK Knights 1.0.0](https://github.com/SHJ00N/Drak_Knights/releases/tag/v1.0.0)
+### Terminal
+```
+cpp
+```
